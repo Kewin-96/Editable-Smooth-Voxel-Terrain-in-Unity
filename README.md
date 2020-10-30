@@ -5,16 +5,47 @@ Smooth voxel terrain is terrain which can be modified in any direction (there ar
 **Visual Studio Community 2019** <br />
 
 # To do list
-**x - not done yet** <br />
-**o - done** <br />
-<br />
-o Editing mesh while project is running. <br />
-o Marching cubes + interpolation algorythm <br />
-x 1 chunk <br />
-x Editing terrain with small scalable ball <br />
-x A few chunks <br />
-x Any number of chunks <br />
-x Terrain generation with seed <br />
+<table>
+  <tr>
+    <th>Functionality</th>
+    <th>Status</th>
+  </tr>
+  
+  <tr>
+    <td>Editing mesh while project is running.</td>
+    <td>:heavy_check_mark:</td>
+  </tr>
+  
+  <tr>
+    <td>Marching cubes + interpolation algorythm</td>
+    <td>:heavy_check_mark:</td>
+  </tr>
+  
+  <tr>
+    <td>1 chunk</td>
+    <td>:construction:</td>
+  </tr>
+  
+  <tr>
+    <td>Editing terrain with small scalable ball</td>
+    <td></td>
+  </tr>
+  
+  <tr>
+    <td>A few chunks</td>
+    <td></td>
+  </tr>
+    
+   <tr>
+    <td>Any number of chunks</td>
+    <td></td>
+  </tr>
+    
+   <tr>
+    <td>Terrain generation with seed</td>
+    <td></td>
+  </tr>
+</table>
 
 # Presentation
 There is nothing interesting to show yet.
