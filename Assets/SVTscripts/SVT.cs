@@ -1,19 +1,26 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Gridcell - 8 points with values
+/// </summary>
 public class Gridcell
 {
     public Vector3[] p = new Vector3[8];
     public float[] val = new float[8];
 }
 
+/// <summary>
+/// Triangle
+/// </summary>
 public class Triangle
 {
     public Vector3[] p = new Vector3[3];
 }
 
-public class Chunk_SVT : MonoBehaviour
+public class SVT : MonoBehaviour
 {
     public static readonly int[/*256*/] edgeTable ={
 0x0  , 0x109, 0x203, 0x30a, 0x406, 0x50f, 0x605, 0x70c,
@@ -308,83 +315,21 @@ public class Chunk_SVT : MonoBehaviour
     public static readonly int[/*256*/] triTableLengths =
 {0,1,1,2,1,2,2,3,1,2,2,3,2,3,3,2,1,2,2,3,2,3,3,4,2,3,3,4,3,4,4,3,1,2,2,3,2,3,3,4,2,3,3,4,3,4,4,3,2,3,3,2,3,4,4,3,3,4,4,3,4,5,5,2,1,2,2,3,2,3,3,4,2,3,3,4,3,4,4,3,2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,4,2,3,3,4,3,4,2,3,3,4,4,5,4,5,3,2,3,4,4,3,4,5,3,2,4,5,5,4,5,2,4,1,1,2,2,3,2,3,3,4,2,3,3,4,3,4,4,3,2,3,3,4,3,4,4,5,3,2,4,3,4,3,5,2,2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,4,3,4,4,3,4,5,5,4,4,3,5,2,5,4,2,1,2,3,3,4,3,4,4,5,3,4,4,5,2,3,3,2,3,4,4,5,4,5,5,2,4,3,5,4,3,2,4,1,3,4,4,5,4,5,3,4,4,5,5,2,3,4,2,1,2,3,3,2,3,4,2,1,3,2,4,1,2,1,1,0};
 
-    Vector3[] vertices;
-    Vector2[] UV;
-    int[] trianglesIndexes;
-    public MeshCollider meshCollider;
+    public static readonly int chunkWidth = 16;                // chunk width
+    public static readonly int chunkHeight = 256;              // chunk height
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        /*int buf = 0;
-        for (int i = 0; i < 256; i++)
-        {
-            buf = 0;
-            for (int j = 0; triTable[i, j * 3] != -1; j++)
-            {
-                buf++;
-            }
-            if (triTableLengths[i] != buf)
-                Debug.Log("ZROBIŁEŚ BŁĄD W i = " + i + ". Powinno byc " + buf + ", a jest " + triTableLengths[i]);
-        }*/
-
-        Gridcell g_test = new Gridcell();
-        g_test.p[0] = new Vector3(0, 0, 0);
-        g_test.p[1] = new Vector3(10, 0, 0);
-        g_test.p[2] = new Vector3(10, 10, 0);
-        g_test.p[3] = new Vector3(0, 10, 0);
-        g_test.p[4] = new Vector3(0, 0, 10);
-        g_test.p[5] = new Vector3(10, 0, 10);
-        g_test.p[6] = new Vector3(10, 10, 10);
-        g_test.p[7] = new Vector3(0, 10, 10);
-        g_test.val[0] = 255;
-        g_test.val[1] = 255;
-        g_test.val[2] = 255;
-        g_test.val[3] = 255;
-        g_test.val[4] = 150;
-        g_test.val[5] = 130;
-        g_test.val[6] = 110;
-        g_test.val[7] = 80;
-        Triangle[] triangles_test = PolygoniseCube(g_test, 128);
-
-        Mesh mesh = new Mesh();
-        GetComponent<MeshFilter>().mesh = mesh;
-        //Mesh mesh = GetComponent<MeshFilter>().mesh;  //w przypadku tej wersji mesh robi sie czarny :d ... nie wiem dlaczego
-        mesh.Clear();
-
-        vertices = new Vector3[triangles_test.Length * 3];
-        for (int i = 0; i < triangles_test.Length; i++)
-        {
-            vertices[i * 3] = triangles_test[i].p[0];
-            vertices[i * 3 + 1] = triangles_test[i].p[1];
-            vertices[i * 3 + 2] = triangles_test[i].p[2];
-            /*Debug.Log(vertices[i * 3].ToString());
-            Debug.Log(vertices[i * 3 + 1].ToString());
-            Debug.Log(vertices[i * 3 + 2].ToString());*/
-        }
-
-        trianglesIndexes = new int[triangles_test.Length * 3];
-        for (int i = 0; i < triangles_test.Length * 3; i++)
-            trianglesIndexes[i] = i;
-
-        mesh.vertices = vertices;
-        mesh.uv = UV;
-        mesh.triangles = trianglesIndexes;
-        meshCollider.sharedMesh = mesh;
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
+    /// <summary>
+    /// Calculates gridcell into triangles
+    /// </summary>
+    /// <param name="g">input gridcell (8 points, with values)</param>
+    /// <param name="iso">isolevel</param>
+    /// <returns>Array of triangles (possible number of triangles: 0-5)</returns>
     public static Triangle[] PolygoniseCube(Gridcell g, float iso)
     {
         Triangle[] tri;
         int cubeindex;
         Vector3[] vertlist = new Vector3[12];
-        
+
         cubeindex = 0;
         if (g.val[0] > iso) cubeindex |= 1;     //0000 0001
         if (g.val[1] > iso) cubeindex |= 2;     //0000 0010
@@ -396,81 +341,88 @@ public class Chunk_SVT : MonoBehaviour
         if (g.val[7] > iso) cubeindex |= 128;   //1000 0000
 
         /* Cube is entirely in/out of the surface */
-        if (edgeTable[cubeindex] == 0)
+        if (SVT.edgeTable[cubeindex] == 0)
         {
             return (null);
         }
 
         /* Find the vertices where the surface intersects the cube */
-        if ((edgeTable[cubeindex] & 1) != 0)
+        if ((SVT.edgeTable[cubeindex] & 1) != 0)
         {
             vertlist[0] = VertexInterp(iso, g.p[0], g.p[1], g.val[0], g.val[1]);
         }
-        if ((edgeTable[cubeindex] & 2) != 0)
+        if ((SVT.edgeTable[cubeindex] & 2) != 0)
         {
             vertlist[1] = VertexInterp(iso, g.p[1], g.p[2], g.val[1], g.val[2]);
         }
-        if ((edgeTable[cubeindex] & 4) != 0)
+        if ((SVT.edgeTable[cubeindex] & 4) != 0)
         {
             vertlist[2] = VertexInterp(iso, g.p[2], g.p[3], g.val[2], g.val[3]);
         }
-        if ((edgeTable[cubeindex] & 8) != 0)
+        if ((SVT.edgeTable[cubeindex] & 8) != 0)
         {
             vertlist[3] = VertexInterp(iso, g.p[3], g.p[0], g.val[3], g.val[0]);
         }
-        if ((edgeTable[cubeindex] & 16) != 0)
+        if ((SVT.edgeTable[cubeindex] & 16) != 0)
         {
             vertlist[4] = VertexInterp(iso, g.p[4], g.p[5], g.val[4], g.val[5]);
         }
-        if ((edgeTable[cubeindex] & 32) != 0)
+        if ((SVT.edgeTable[cubeindex] & 32) != 0)
         {
             vertlist[5] = VertexInterp(iso, g.p[5], g.p[6], g.val[5], g.val[6]);
         }
-        if ((edgeTable[cubeindex] & 64) != 0)
+        if ((SVT.edgeTable[cubeindex] & 64) != 0)
         {
             vertlist[6] = VertexInterp(iso, g.p[6], g.p[7], g.val[6], g.val[7]);
         }
-        if ((edgeTable[cubeindex] & 128) != 0)
+        if ((SVT.edgeTable[cubeindex] & 128) != 0)
         {
             vertlist[7] = VertexInterp(iso, g.p[7], g.p[4], g.val[7], g.val[4]);
         }
-        if ((edgeTable[cubeindex] & 256) != 0)
+        if ((SVT.edgeTable[cubeindex] & 256) != 0)
         {
             vertlist[8] = VertexInterp(iso, g.p[0], g.p[4], g.val[0], g.val[4]);
         }
-        if ((edgeTable[cubeindex] & 512) != 0)
+        if ((SVT.edgeTable[cubeindex] & 512) != 0)
         {
             vertlist[9] = VertexInterp(iso, g.p[1], g.p[5], g.val[1], g.val[5]);
         }
-        if ((edgeTable[cubeindex] & 1024) != 0)
+        if ((SVT.edgeTable[cubeindex] & 1024) != 0)
         {
             vertlist[10] = VertexInterp(iso, g.p[2], g.p[6], g.val[2], g.val[6]);
         }
-        if ((edgeTable[cubeindex] & 2048) != 0)
+        if ((SVT.edgeTable[cubeindex] & 2048) != 0)
         {
             vertlist[11] = VertexInterp(iso, g.p[3], g.p[7], g.val[3], g.val[7]);
         }
 
         /* Create the triangles */
-        tri = new Triangle[triTableLengths[cubeindex]];
-        for (int i = 0; i < triTableLengths[cubeindex]; i++)
+        tri = new Triangle[SVT.triTableLengths[cubeindex]];
+        for (int i = 0; i < SVT.triTableLengths[cubeindex]; i++)
         {
             tri[i] = new Triangle();
-            tri[i].p[0] = vertlist[triTable[cubeindex, i * 3]];
-            tri[i].p[1] = vertlist[triTable[cubeindex, (i * 3) + 1]];
-            tri[i].p[2] = vertlist[triTable[cubeindex, (i * 3) + 2]];
+            tri[i].p[0] = vertlist[SVT.triTable[cubeindex, i * 3]];
+            tri[i].p[1] = vertlist[SVT.triTable[cubeindex, (i * 3) + 1]];
+            tri[i].p[2] = vertlist[SVT.triTable[cubeindex, (i * 3) + 2]];
         }
 
         return tri;
     }
 
-
-
+    /// <summary>
+    /// Vertex interpolation
+    /// </summary>
+    /// <param name="isolevel">isolevel</param>
+    /// <param name="p1">point no 1</param>
+    /// <param name="p2">point no 2</param>
+    /// <param name="valp1">point 1 value</param>
+    /// <param name="valp2">point 2 value</param>
+    /// <returns>Interpolated point</returns>
     public static Vector3 VertexInterp(float isolevel, Vector3 p1, Vector3 p2, float valp1, float valp2)
     {
         float mu;
         Vector3 p;
-    
+
         if (Mathf.Abs(isolevel - valp1) < 0.00001)
             return (p1);
         if (Mathf.Abs(isolevel - valp2) < 0.00001)
@@ -483,5 +435,34 @@ public class Chunk_SVT : MonoBehaviour
         p.z = p1.z + mu * (p2.z - p1.z);
 
         return (p);
+    }
+
+    /// <summary>
+    /// Converts gridcells to voxels
+    /// </summary>
+    /// <param name="voxels">array of voxels</param>
+    /// <returns>array of gridcell</returns>
+    public static Gridcell[][][] ConvertGridcellsToVoxels(int[][][] voxels)
+    {
+        // nie przejmowac sie faktem ze tablice bądą ogranczone (np [5][5][10]) - tym ma się przejmować programista korzystający z tej metody ...
+        throw new NotImplementedException();
+    }
+
+    public static Vector3[] vertices(Triangle[] triangles)
+    {
+
+        throw new NotImplementedException();
+    }
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        
     }
 }
