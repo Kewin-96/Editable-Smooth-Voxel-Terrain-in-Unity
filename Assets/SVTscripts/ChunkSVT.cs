@@ -3,6 +3,25 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/* UNITY
+       4--------5       *---4----*
+      /|       /|      /|       /|
+     / |      / |     7 |      5 |
+    /  y     /  |    /  8     /  9
+   7--------6   |   *----6---*   |
+   |   |    |   |   |   |    |   |
+   |   0--x-|---1   |   *---0|---*
+   |  /     |  /    11 /     10 /
+   | z      | /     | 3      | 1
+   |/       |/      |/       |/
+   3--------2       *---2----*
+   
+   // [0] [1] [2]
+   // [3] [-] [4] x
+   // [5] [6] [7]
+   //      z
+*/
+
 /// <summary>
 /// Gridcell - 8 points with values
 /// </summary>
@@ -20,8 +39,9 @@ public class Triangle
     public Vector3[] p = new Vector3[3];
 }
 
-public class SVT : MonoBehaviour
+public class ChunkSVT : MonoBehaviour
 {
+    // Data for SVT algorythm
     public static readonly int[/*256*/] edgeTable ={
 0x0  , 0x109, 0x203, 0x30a, 0x406, 0x50f, 0x605, 0x70c,
 0x80c, 0x905, 0xa0f, 0xb06, 0xc0a, 0xd03, 0xe09, 0xf00,
@@ -315,8 +335,69 @@ public class SVT : MonoBehaviour
     public static readonly int[/*256*/] triTableLengths =
 {0,1,1,2,1,2,2,3,1,2,2,3,2,3,3,2,1,2,2,3,2,3,3,4,2,3,3,4,3,4,4,3,1,2,2,3,2,3,3,4,2,3,3,4,3,4,4,3,2,3,3,2,3,4,4,3,3,4,4,3,4,5,5,2,1,2,2,3,2,3,3,4,2,3,3,4,3,4,4,3,2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,4,2,3,3,4,3,4,2,3,3,4,4,5,4,5,3,2,3,4,4,3,4,5,3,2,4,5,5,4,5,2,4,1,1,2,2,3,2,3,3,4,2,3,3,4,3,4,4,3,2,3,3,4,3,4,4,5,3,2,4,3,4,3,5,2,2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,4,3,4,4,3,4,5,5,4,4,3,5,2,5,4,2,1,2,3,3,4,3,4,4,5,3,4,4,5,2,3,3,2,3,4,4,5,4,5,5,2,4,3,5,4,3,2,4,1,3,4,4,5,4,5,3,4,4,5,5,2,3,4,2,1,2,3,3,2,3,4,2,1,3,2,4,1,2,1,1,0};
 
+    // Chunks parameters
     public static readonly int chunkWidth = 16;                // chunk width
     public static readonly int chunkHeight = 256;              // chunk height
+    public static readonly int gridcellWidth = 5;
+    public static readonly int isolevel = 128;
+
+    // Main data of terrain
+    public float[][][] voxels;                  // voxels value in 3D array
+    public Gridcell[][][] grid;                 // Grid [x][y][z] - y is vertical axis !!!
+
+    // Fields needed for creating mesh
+    public Triangle[] triangles;
+    public Vector3[] vertices;                  // all vertices of all triangles of chunk (every 3 continously vertices is 1 triangle)
+    public Vector3[] normals;
+    public Vector2[] UV;                        // UV - empty for now
+    public int[] verticesIndexes;               // indexes of all vertices (every 3 continously vertices is 1 triangle)
+
+    // Mesh collider
+    public MeshCollider meshCollider;           // mesh collider
+
+    // [0] [1] [2]
+    // [3] [-] [4]
+    // [5] [6] [7]
+    public ChunkSVT[] neighborhood;
+
+    // Fields initialization
+    public void ChunkInit()
+    {
+        // initialization of voxels
+        voxels = new float[chunkWidth][][];
+        for (int i = 0; i < chunkWidth; i++)
+        {
+            voxels[i] = new float[chunkHeight][];
+            for (int j = 0; j < chunkHeight; j++)
+                voxels[i][j] = new float[chunkWidth];
+        }
+
+        // initialization of grid
+        grid = new Gridcell[chunkWidth][][];
+        for (int i = 0; i < chunkWidth; i++)
+        {
+            grid[i] = new Gridcell[chunkHeight][];
+            for (int j = 0; j < chunkHeight; j++)
+            {
+                grid[i][j] = new Gridcell[chunkWidth];
+                for (int k = 0; k < chunkWidth; k++)
+                {
+                    grid[i][j][k] = new Gridcell();
+                    grid[i][j][k].p[0] = new Vector3(i * gridcellWidth, j * gridcellWidth, k * gridcellWidth);
+                    grid[i][j][k].p[1] = new Vector3((i + 1) * gridcellWidth, j * gridcellWidth, k * gridcellWidth);
+                    grid[i][j][k].p[2] = new Vector3((i + 1) * gridcellWidth, j * gridcellWidth, (k + 1) * gridcellWidth);
+                    grid[i][j][k].p[3] = new Vector3(i * gridcellWidth, j * gridcellWidth, (k + 1) * gridcellWidth);
+                    grid[i][j][k].p[4] = new Vector3(i * gridcellWidth, (j + 1) * gridcellWidth, k * gridcellWidth);
+                    grid[i][j][k].p[5] = new Vector3((i + 1) * gridcellWidth, (j + 1) * gridcellWidth, k * gridcellWidth);
+                    grid[i][j][k].p[6] = new Vector3((i + 1) * gridcellWidth, (j + 1) * gridcellWidth, (k + 1) * gridcellWidth);
+                    grid[i][j][k].p[7] = new Vector3(i * gridcellWidth, (j + 1) * gridcellWidth, (k + 1) * gridcellWidth);
+                }
+            }
+        }
+
+        // initialization of neighborhood
+        neighborhood = new ChunkSVT[8];
+    }
 
     /// <summary>
     /// Calculates gridcell into triangles
@@ -341,69 +422,69 @@ public class SVT : MonoBehaviour
         if (g.val[7] > iso) cubeindex |= 128;   //1000 0000
 
         /* Cube is entirely in/out of the surface */
-        if (SVT.edgeTable[cubeindex] == 0)
+        if (edgeTable[cubeindex] == 0)
         {
-            return (null);
+            return new Triangle[0];
         }
 
         /* Find the vertices where the surface intersects the cube */
-        if ((SVT.edgeTable[cubeindex] & 1) != 0)
+        if ((edgeTable[cubeindex] & 1) != 0)
         {
             vertlist[0] = VertexInterp(iso, g.p[0], g.p[1], g.val[0], g.val[1]);
         }
-        if ((SVT.edgeTable[cubeindex] & 2) != 0)
+        if ((edgeTable[cubeindex] & 2) != 0)
         {
             vertlist[1] = VertexInterp(iso, g.p[1], g.p[2], g.val[1], g.val[2]);
         }
-        if ((SVT.edgeTable[cubeindex] & 4) != 0)
+        if ((edgeTable[cubeindex] & 4) != 0)
         {
             vertlist[2] = VertexInterp(iso, g.p[2], g.p[3], g.val[2], g.val[3]);
         }
-        if ((SVT.edgeTable[cubeindex] & 8) != 0)
+        if ((edgeTable[cubeindex] & 8) != 0)
         {
             vertlist[3] = VertexInterp(iso, g.p[3], g.p[0], g.val[3], g.val[0]);
         }
-        if ((SVT.edgeTable[cubeindex] & 16) != 0)
+        if ((edgeTable[cubeindex] & 16) != 0)
         {
             vertlist[4] = VertexInterp(iso, g.p[4], g.p[5], g.val[4], g.val[5]);
         }
-        if ((SVT.edgeTable[cubeindex] & 32) != 0)
+        if ((edgeTable[cubeindex] & 32) != 0)
         {
             vertlist[5] = VertexInterp(iso, g.p[5], g.p[6], g.val[5], g.val[6]);
         }
-        if ((SVT.edgeTable[cubeindex] & 64) != 0)
+        if ((edgeTable[cubeindex] & 64) != 0)
         {
             vertlist[6] = VertexInterp(iso, g.p[6], g.p[7], g.val[6], g.val[7]);
         }
-        if ((SVT.edgeTable[cubeindex] & 128) != 0)
+        if ((edgeTable[cubeindex] & 128) != 0)
         {
             vertlist[7] = VertexInterp(iso, g.p[7], g.p[4], g.val[7], g.val[4]);
         }
-        if ((SVT.edgeTable[cubeindex] & 256) != 0)
+        if ((edgeTable[cubeindex] & 256) != 0)
         {
             vertlist[8] = VertexInterp(iso, g.p[0], g.p[4], g.val[0], g.val[4]);
         }
-        if ((SVT.edgeTable[cubeindex] & 512) != 0)
+        if ((edgeTable[cubeindex] & 512) != 0)
         {
             vertlist[9] = VertexInterp(iso, g.p[1], g.p[5], g.val[1], g.val[5]);
         }
-        if ((SVT.edgeTable[cubeindex] & 1024) != 0)
+        if ((edgeTable[cubeindex] & 1024) != 0)
         {
             vertlist[10] = VertexInterp(iso, g.p[2], g.p[6], g.val[2], g.val[6]);
         }
-        if ((SVT.edgeTable[cubeindex] & 2048) != 0)
+        if ((edgeTable[cubeindex] & 2048) != 0)
         {
             vertlist[11] = VertexInterp(iso, g.p[3], g.p[7], g.val[3], g.val[7]);
         }
 
         /* Create the triangles */
-        tri = new Triangle[SVT.triTableLengths[cubeindex]];
-        for (int i = 0; i < SVT.triTableLengths[cubeindex]; i++)
+        tri = new Triangle[triTableLengths[cubeindex]];
+        for (int i = 0; i < triTableLengths[cubeindex]; i++)
         {
             tri[i] = new Triangle();
-            tri[i].p[0] = vertlist[SVT.triTable[cubeindex, i * 3]];
-            tri[i].p[1] = vertlist[SVT.triTable[cubeindex, (i * 3) + 1]];
-            tri[i].p[2] = vertlist[SVT.triTable[cubeindex, (i * 3) + 2]];
+            tri[i].p[0] = vertlist[triTable[cubeindex, i * 3]];
+            tri[i].p[1] = vertlist[triTable[cubeindex, (i * 3) + 1]];
+            tri[i].p[2] = vertlist[triTable[cubeindex, (i * 3) + 2]];
         }
 
         return tri;
@@ -440,23 +521,222 @@ public class SVT : MonoBehaviour
     /// <summary>
     /// Converts gridcells to voxels
     /// </summary>
-    /// <param name="voxels">array of voxels</param>
-    /// <returns>array of gridcell</returns>
-    public static Gridcell[][][] ConvertGridcellsToVoxels(int[][][] voxels)
+    /// <param name="x1">x start of update</param>
+    /// <param name="y1">y start of update</param>
+    /// <param name="z1">z start of update</param>
+    /// <param name="xL">x length of update</param>
+    /// <param name="yL">y length of update</param>
+    /// <param name="zL">z length of update</param>
+    /// <param name="chunk">chunk</param>
+    /// <param name="neighborChunks">neighbor chunk</param>
+    public static void ConvertVoxelsToGridcells(int x1, int y1, int z1, int xL, int yL, int zL, ChunkSVT chunk, ChunkSVT[] neighborChunks)
     {
-        // nie przejmowac sie faktem ze tablice bądą ogranczone (np [5][5][10]) - tym ma się przejmować programista korzystający z tej metody ...
-        throw new NotImplementedException();
+        for (int i = x1; i < x1 + xL; i++)
+        {
+            for (int j = y1; j < y1 + yL; j++)
+            {
+                for (int k = z1; k < z1 + zL; k++)
+                {
+                    //Debug.Log(i + ", " + j + ", " + k);
+                    // 0 - gricell vertice number
+                    chunk.grid[i][j][k].val[0] = chunk.voxels[i][j][k];
+
+                    // 1
+                    if (i > 0)
+                        chunk.grid[i - 1][j][k].val[1] = chunk.voxels[i][j][k];
+                    else
+                    {
+                        if (neighborChunks[3] != null)
+                            neighborChunks[3].grid[i - 1][j][k].val[1] = chunk.voxels[i][j][k];
+                    }
+
+                    // 2
+                    if (i > 0 && k > 0)
+                        chunk.grid[i - 1][j][k - 1].val[2] = chunk.voxels[i][j][k];
+                    else if (i > 0)
+                    {
+                        if (neighborChunks[3] != null)
+                            neighborChunks[3].grid[i - 1][j][k - 1].val[2] = chunk.voxels[i][j][k];
+                    }
+                    else if (k > 0)
+                    {
+                        if (neighborChunks[1] != null)
+                            neighborChunks[1].grid[i - 1][j][k - 1].val[2] = chunk.voxels[i][j][k];
+                    }
+                    else
+                    {
+                        if (neighborChunks[0] != null)
+                            neighborChunks[0].grid[i - 1][j][k - 1].val[2] = chunk.voxels[i][j][k];
+                    }
+
+                    // 3
+                    if (k > 0)
+                        chunk.grid[i][j][k - 1].val[3] = chunk.voxels[i][j][k];
+                    else
+                    {
+                        if (neighborChunks[1] != null)
+                            neighborChunks[1].grid[i][j][k - 1].val[3] = chunk.voxels[i][j][k];
+                    }
+
+                    // 4, 5, 6, 7
+                    if (j > 0 && j < chunkHeight)
+                    {
+                        // 4
+                        chunk.grid[i][j - 1][k].val[4] = chunk.voxels[i][j][k];
+
+                        // 5
+                        if (i > 0)
+                            chunk.grid[i - 1][j - 1][k].val[5] = chunk.voxels[i][j][k];
+                        else
+                        {
+                            if (neighborChunks[3] != null)
+                                neighborChunks[3].grid[i - 1][j - 1][k].val[5] = chunk.voxels[i][j][k];
+                        }
+
+                        // 6
+                        if (i > 0 && k > 0)
+                            chunk.grid[i - 1][j - 1][k - 1].val[6] = chunk.voxels[i][j][k];
+                        else if (i > 0)
+                        {
+                            if (neighborChunks[3] != null)
+                                neighborChunks[3].grid[i - 1][j - 1][k - 1].val[6] = chunk.voxels[i][j][k];
+                        }
+                        else if (k > 0)
+                        {
+                            if (neighborChunks[1] != null)
+                                neighborChunks[1].grid[i - 1][j - 1][k - 1].val[6] = chunk.voxels[i][j][k];
+                        }
+                        else
+                        {
+                            if (neighborChunks[0] != null)
+                                neighborChunks[0].grid[i - 1][j - 1][k - 1].val[6] = chunk.voxels[i][j][k];
+                        }
+
+                        // 7
+                        if (k > 0)
+                            chunk.grid[i][j - 1][k - 1].val[7] = chunk.voxels[i][j][k];
+                        else
+                        {
+                            if (neighborChunks[1] != null)
+                                neighborChunks[1].grid[i][j - 1][k - 1].val[7] = chunk.voxels[i][j][k];
+                        }
+                    }
+                    // else: gridcell below or above chunk - do nothing ...
+                }
+            }
+        }
     }
 
-    public static Vector3[] vertices(Triangle[] triangles)
+    /// <summary>
+    /// Converts grid into triangles
+    /// </summary>
+    /// <param name="chunk">chunk</param>
+    public static void ConvertGridToTriangles(ChunkSVT chunk)
     {
+        List<Triangle> triangles = new List<Triangle>();
+        for (int i = 0; i < chunk.grid.Length; i++)
+            for (int j = 0; j < chunk.grid[i].Length; j++)
+                for (int k = 0; k < chunk.grid[i][j].Length; k++)
+                {
+                    Triangle[] trBuf = PolygoniseCube(chunk.grid[i][j][k], isolevel);
+                    for (int l = 0; l < trBuf.Length; l++)
+                        triangles.Add(trBuf[l]);
+                }
+        chunk.triangles = new Triangle[triangles.Count];
+        triangles.CopyTo(chunk.triangles);
+    }
 
-        throw new NotImplementedException();
+    /// <summary>
+    /// Converts all triangles into vertices
+    /// </summary>
+    /// <param name="triangles">triangles array</param>
+    public static void ConvertTrianglesToVertices(ChunkSVT chunk)
+    {
+        chunk.vertices = new Vector3[3 * chunk.triangles.Length];
+        for (int i = 0; i < chunk.triangles.Length; i++)
+        {
+            chunk.vertices[3 * i] = chunk.triangles[i].p[0];
+            chunk.vertices[3 * i + 1] = chunk.triangles[i].p[1];
+            chunk.vertices[3 * i + 2] = chunk.triangles[i].p[2];
+        }
+
+    }
+
+    /// <summary>
+    /// Calculates indexes of vertices
+    /// </summary>
+    /// <param name="chunk"></param>
+    public static void CalcIndexesOfVertices(ChunkSVT chunk)
+    {
+        chunk.verticesIndexes = new int[chunk.triangles.Length * 3];
+        for (int i = 0; i < chunk.triangles.Length * 3; i++)
+            chunk.verticesIndexes[i] = i;
+    }
+
+    /// <summary>
+    /// Calculates normals of vertices
+    /// </summary>
+    /// <param name="chunk"></param>
+    public static void CalcNormals(ChunkSVT chunk)
+    {
+        chunk.normals = new Vector3[chunk.vertices.Length];
+        for (int i = 0; i < chunk.triangles.Length; i++)
+        {
+            Vector3 A = new Vector3(chunk.triangles[i].p[1].x - chunk.triangles[i].p[0].x, chunk.triangles[i].p[1].y - chunk.triangles[i].p[0].y, chunk.triangles[i].p[1].z - chunk.triangles[i].p[0].z);
+            Vector3 B = new Vector3(chunk.triangles[i].p[1].x - chunk.triangles[i].p[2].x, chunk.triangles[i].p[1].y - chunk.triangles[i].p[2].y, chunk.triangles[i].p[1].z - chunk.triangles[i].p[2].z);
+            Vector3 n = new Vector3(A.y * B.z - A.z * B.y, A.z * B.x - A.x * B.z, A.x * B.y - A.y * B.x);
+            n.Normalize();
+            n.Scale(new Vector3(-1,-1,-1));
+            chunk.normals[3 * i] = n;
+            chunk.normals[3 * i + 1] = n;
+            chunk.normals[3 * i + 2] = n;
+        }
     }
 
     // Start is called before the first frame update
     void Start()
     {
+        // initialization
+        ChunkInit();
+
+        // Example filling of voxel terrain (In this place will be calculating terrain with seed and special mathematical noise function(s))
+        for (int i = 0; i < chunkWidth; i++)
+            for (int j = 0; j < 5; j++)
+                for (int k = 0; k < chunkWidth; k++)
+                {
+                    voxels[i][j][k] = 255;
+                }
+        for (int i = 0; i < chunkWidth; i++)
+            for (int k = 0; k < chunkWidth; k++)
+            {
+                voxels[i][5][k] = (float)(255 * Math.Sin(i) * Math.Cos(k));
+            }
+
+        // converting voxel array to vertices
+        ConvertVoxelsToGridcells(0, 0, 0, chunkWidth, chunkHeight, chunkWidth, this, neighborhood);
+
+        // polygonising
+        ConvertGridToTriangles(this);
+
+        // converting triangles to vertices
+        ConvertTrianglesToVertices(this);
+
+        // calculating indexes of vertices
+        CalcIndexesOfVertices(this);
+
+        // Calculate normals
+        CalcNormals(this);
+
+        // mesh object
+        Mesh mesh = new Mesh();
+        GetComponent<MeshFilter>().mesh = mesh;         // setting mesh for game object
+        mesh.Clear();
+        
+        mesh.vertices = vertices;               // all vertices of all triagles
+        mesh.normals = normals;
+        mesh.uv = UV;                           // empty array
+        mesh.triangles = verticesIndexes;       // indexes of each vertices
+        meshCollider.sharedMesh = mesh;         // mesh collider
         
     }
 
