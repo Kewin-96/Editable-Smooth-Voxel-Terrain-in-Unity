@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -335,11 +336,11 @@ public class ChunkSVT : MonoBehaviour
 {0,1,1,2,1,2,2,3,1,2,2,3,2,3,3,2,1,2,2,3,2,3,3,4,2,3,3,4,3,4,4,3,1,2,2,3,2,3,3,4,2,3,3,4,3,4,4,3,2,3,3,2,3,4,4,3,3,4,4,3,4,5,5,2,1,2,2,3,2,3,3,4,2,3,3,4,3,4,4,3,2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,4,2,3,3,4,3,4,2,3,3,4,4,5,4,5,3,2,3,4,4,3,4,5,3,2,4,5,5,4,5,2,4,1,1,2,2,3,2,3,3,4,2,3,3,4,3,4,4,3,2,3,3,4,3,4,4,5,3,2,4,3,4,3,5,2,2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,4,3,4,4,3,4,5,5,4,4,3,5,2,5,4,2,1,2,3,3,4,3,4,4,5,3,4,4,5,2,3,3,2,3,4,4,5,4,5,5,2,4,3,5,4,3,2,4,1,3,4,4,5,4,5,3,4,4,5,5,2,3,4,2,1,2,3,3,2,3,4,2,1,3,2,4,1,2,1,1,0};
 
     // Chunks parameters
-    public static readonly int chunkWidthGridcells = 16;                // chunk width in gridcells
-    public static readonly int chunkHeightGridcells = 256;              // chunk height in gridcells
+    public static readonly int chunkWidthGC = 16;                       // chunk width in gridcells
+    public static readonly int chunkHeightGC = 256;                     // chunk height in gridcells
     public static readonly int gridcellWidth = 1;                       // gridcell width
-    public static readonly int chunkWidth = chunkWidthGridcells * gridcellWidth;    // chunk width
-    public static readonly int chunkHeight = chunkHeightGridcells * gridcellWidth;  // chunk height
+    public static readonly int chunkWidth = chunkWidthGC * gridcellWidth;    // chunk width
+    public static readonly int chunkHeight = chunkHeightGC * gridcellWidth;  // chunk height
     public static readonly int isolevel = 128;                          // isolevel
 
     // Main data of terrain
@@ -356,10 +357,9 @@ public class ChunkSVT : MonoBehaviour
 
     // Mesh collider
     public Mesh mesh;                           // mesh
-    public MeshCollider meshCollider;           // mesh collider
 
-    // Character reference
-    public Transform characterRef;
+    // References
+    public SVTterrain sVTterrain;
 
     // [0] [1] [2]
     // [3] [-] [4]
@@ -367,38 +367,50 @@ public class ChunkSVT : MonoBehaviour
     public ChunkSVT[] neighborhood;             // chunks in neighborhood
 
     /// <summary>
-    /// Fields initialization
+    /// Constructor
+    /// </summary>
+    /// <param name="collider"></param>
+    /// <param name="charReft"></param>
+    public ChunkSVT(SVTterrain terrain, Vector3 worldLocation)
+    {
+        sVTterrain = terrain;
+        worldLoc = worldLocation;
+        ChunkInit();
+    }
+
+    /// <summary>
+    /// Chunk initialization
     /// </summary>
     public void ChunkInit()
     {
         // initialization of voxels
-        voxels = new float[chunkWidthGridcells][][];
-        for (int i = 0; i < chunkWidthGridcells; i++)
+        voxels = new float[chunkWidthGC][][];
+        for (int i = 0; i < chunkWidthGC; i++)
         {
-            voxels[i] = new float[chunkHeightGridcells][];
-            for (int j = 0; j < chunkHeightGridcells; j++)
-                voxels[i][j] = new float[chunkWidthGridcells];
+            voxels[i] = new float[chunkHeightGC][];
+            for (int j = 0; j < chunkHeightGC; j++)
+                voxels[i][j] = new float[chunkWidthGC];
         }
 
         // initialization of grid
-        grid = new Gridcell[chunkWidthGridcells][][];
-        for (int i = 0; i < chunkWidthGridcells; i++)
+        grid = new Gridcell[chunkWidthGC][][];
+        for (int i = 0; i < chunkWidthGC; i++)
         {
-            grid[i] = new Gridcell[chunkHeightGridcells][];
-            for (int j = 0; j < chunkHeightGridcells; j++)
+            grid[i] = new Gridcell[chunkHeightGC][];
+            for (int j = 0; j < chunkHeightGC; j++)
             {
-                grid[i][j] = new Gridcell[chunkWidthGridcells];
-                for (int k = 0; k < chunkWidthGridcells; k++)
+                grid[i][j] = new Gridcell[chunkWidthGC];
+                for (int k = 0; k < chunkWidthGC; k++)
                 {
                     grid[i][j][k] = new Gridcell();
-                    grid[i][j][k].p[0] = new Vector3(i * gridcellWidth, j * gridcellWidth, k * gridcellWidth);
-                    grid[i][j][k].p[1] = new Vector3((i + 1) * gridcellWidth, j * gridcellWidth, k * gridcellWidth);
-                    grid[i][j][k].p[2] = new Vector3((i + 1) * gridcellWidth, j * gridcellWidth, (k + 1) * gridcellWidth);
-                    grid[i][j][k].p[3] = new Vector3(i * gridcellWidth, j * gridcellWidth, (k + 1) * gridcellWidth);
-                    grid[i][j][k].p[4] = new Vector3(i * gridcellWidth, (j + 1) * gridcellWidth, k * gridcellWidth);
-                    grid[i][j][k].p[5] = new Vector3((i + 1) * gridcellWidth, (j + 1) * gridcellWidth, k * gridcellWidth);
-                    grid[i][j][k].p[6] = new Vector3((i + 1) * gridcellWidth, (j + 1) * gridcellWidth, (k + 1) * gridcellWidth);
-                    grid[i][j][k].p[7] = new Vector3(i * gridcellWidth, (j + 1) * gridcellWidth, (k + 1) * gridcellWidth);
+                    grid[i][j][k].p[0] = new Vector3(i * gridcellWidth, j * gridcellWidth, k * gridcellWidth) + worldLoc;
+                    grid[i][j][k].p[1] = new Vector3((i + 1) * gridcellWidth, j * gridcellWidth, k * gridcellWidth) + worldLoc;
+                    grid[i][j][k].p[2] = new Vector3((i + 1) * gridcellWidth, j * gridcellWidth, (k + 1) * gridcellWidth) + worldLoc;
+                    grid[i][j][k].p[3] = new Vector3(i * gridcellWidth, j * gridcellWidth, (k + 1) * gridcellWidth) + worldLoc;
+                    grid[i][j][k].p[4] = new Vector3(i * gridcellWidth, (j + 1) * gridcellWidth, k * gridcellWidth) + worldLoc;
+                    grid[i][j][k].p[5] = new Vector3((i + 1) * gridcellWidth, (j + 1) * gridcellWidth, k * gridcellWidth) + worldLoc;
+                    grid[i][j][k].p[6] = new Vector3((i + 1) * gridcellWidth, (j + 1) * gridcellWidth, (k + 1) * gridcellWidth) + worldLoc;
+                    grid[i][j][k].p[7] = new Vector3(i * gridcellWidth, (j + 1) * gridcellWidth, (k + 1) * gridcellWidth) + worldLoc;
                 }
             }
         }
@@ -407,11 +419,27 @@ public class ChunkSVT : MonoBehaviour
         neighborhood = new ChunkSVT[8];
 
         // getting world location
-        worldLoc = transform.position;
+        worldLoc = sVTterrain.transform.position;
 
         // inicjalization mesh object
         mesh = new Mesh();
-        GetComponent<MeshFilter>().mesh = mesh;         // setting mesh for game object
+        sVTterrain.GetComponent<MeshFilter>().mesh = mesh;         // setting mesh for game object
+        
+        // DEBUG - test filling of voxel terrain (In this place will be calculating terrain with seed and special mathematical noise function(s))
+        for (int i = 0; i < chunkWidthGC; i++)
+            for (int j = 0; j < 5; j++)
+                for (int k = 0; k < chunkWidthGC; k++)
+                {
+                    voxels[i][j][k] = 255;
+                }
+        for (int i = 0; i < chunkWidthGC; i++)
+            for (int k = 0; k < chunkWidthGC; k++)
+            {
+                voxels[i][5][k] = (float)(255 * Mathf.Sin(i) * Mathf.Cos(k));
+            }
+
+        // Converts voxels to SVT
+        ConvertVoxelsToSVT();
     }
 
     /// <summary>
@@ -593,7 +621,7 @@ public class ChunkSVT : MonoBehaviour
                     }
 
                     // 4, 5, 6, 7
-                    if (j > 0 && j < chunkHeightGridcells)
+                    if (j > 0 && j < chunkHeightGC)
                     {
                         // 4
                         grid[i][j - 1][k].val[4] = voxels[i][j][k];
@@ -717,7 +745,7 @@ public class ChunkSVT : MonoBehaviour
         mesh.normals = normals;                 // normals
         mesh.uv = UV;                           // UV - empty array for now
         mesh.triangles = verticesIndexes;       // indexes of each vertices
-        meshCollider.sharedMesh = mesh;         // mesh collider
+        sVTterrain.meshCollider.sharedMesh = mesh;         // mesh collider
     }
 
     /// <summary>
@@ -726,7 +754,7 @@ public class ChunkSVT : MonoBehaviour
     public void ConvertVoxelsToSVT()
     {
         // converting voxel array to vertices
-        ConvertVoxelsToGridcells(0, 0, 0, chunkWidthGridcells, chunkHeightGridcells, chunkWidthGridcells, this, neighborhood);
+        ConvertVoxelsToGridcells(0, 0, 0, chunkWidthGC, chunkHeightGC, chunkWidthGC, this, neighborhood);
 
         // polygonising
         ConvertGridToTriangles();
@@ -745,36 +773,15 @@ public class ChunkSVT : MonoBehaviour
     }
 
     /// <summary>
-    /// Start is called before the first frame update
-    /// </summary>
-    void Start()
-    {
-        // initialization
-        ChunkInit();
-
-        // DEBUG - test filling of voxel terrain (In this place will be calculating terrain with seed and special mathematical noise function(s))
-        for (int i = 0; i < chunkWidthGridcells; i++)
-            for (int j = 0; j < 5; j++)
-                for (int k = 0; k < chunkWidthGridcells; k++)
-                {
-                    voxels[i][j][k] = 255;
-                }
-        for (int i = 0; i < chunkWidthGridcells; i++)
-            for (int k = 0; k < chunkWidthGridcells; k++)
-            {
-                voxels[i][5][k] = (float)(255 * Mathf.Sin(i) * Mathf.Cos(k));
-            }
-
-        // Converts voxels to SVT
-        ConvertVoxelsToSVT();
-    }
-
-    /// <summary>
     /// Update is called once per frame
     /// </summary>
-    void Update()
+    public void Update()
     {
-        Vector3 playerWorldLocation = characterRef.transform.position;
-        Vector3 chunkWorldLocation = transform.position;
+        Vector3 playerWorldLocation = sVTterrain.characterRef.transform.position;
+        Vector3 chunkWorldLocation = worldLoc;
+        Vector3 playerRelativeLocation = playerWorldLocation - chunkWorldLocation;
+        Vector2Int playerOnChunkLocation = new Vector2Int((int)(playerRelativeLocation.x / gridcellWidth / 16), (int)(playerRelativeLocation.z / gridcellWidth / 16));
+        throw new NotImplementedException("okolice zera dzialaja zle !!! - przy wartosciach ujemnych zaookraglac w gore");
+        Debug.Log(playerOnChunkLocation);
     }
 }

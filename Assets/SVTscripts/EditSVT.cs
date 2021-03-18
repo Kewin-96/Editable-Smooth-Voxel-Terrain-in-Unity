@@ -6,9 +6,8 @@ public class EditSVT : MonoBehaviour
 {
     public static void DecreaseVoxel(float change, ChunkSVT chunk, Vector3 hitWorldLoc)
     {
-        Debug.Log(hitWorldLoc);
         // relative location of hit
-        Vector3 relativeLocation = hitWorldLoc - chunk.worldLoc;
+        Vector3 relativeLocation = hitWorldLoc - 2 * chunk.worldLoc;
 
         // indexes of aproximated voxel
         int ix = (int)Mathf.Round(relativeLocation.x / (float)ChunkSVT.gridcellWidth);

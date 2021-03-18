@@ -35,10 +35,10 @@ public class PlayerMovement : MonoBehaviour
             RaycastHit hit;
             if (Physics.Raycast(fpsCam.transform.position, fpsCam.transform.forward, out hit, range))
             {
-                ChunkSVT hitChunk = hit.transform.GetComponent<ChunkSVT>();
+                SVTterrain hitChunk = hit.transform.GetComponent<SVTterrain>();
                 if (hitChunk != null)
                 {
-                    EditSVT.DecreaseVoxel(-20, hitChunk, hit.point);
+                    EditSVT.DecreaseVoxel(-20, hitChunk.terrain[0], hit.point);
                 }
             }
         }
