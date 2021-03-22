@@ -35,10 +35,11 @@ public class PlayerMovement : MonoBehaviour
             RaycastHit hit;
             if (Physics.Raycast(fpsCam.transform.position, fpsCam.transform.forward, out hit, range))
             {
-                SVTterrain hitChunk = hit.transform.GetComponent<SVTterrain>();
+                ChunkSVT hitChunk = hit.transform.GetComponent<ChunkSVT>();
                 if (hitChunk != null)
                 {
-                    EditSVT.DecreaseVoxel(-20, hitChunk.terrain[0], hit.point);
+                    // IMPROVE  - zawsze jest brany pierwszy chunk !!! ... no i na testy jeszcze dac wyswietlanie sąsiadów postrzelonego chunka
+                    EditSVT.DecreaseVoxel(-20, hitChunk, hit.point);
                 }
             }
         }

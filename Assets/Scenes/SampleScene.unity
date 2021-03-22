@@ -143,6 +143,11 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 8
       objectReference: {fileID: 0}
+    - target: {fileID: -927199367670048503, guid: fd9532a5fca0c9847b3e440615c05d8e,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: fd9532a5fca0c9847b3e440615c05d8e,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -181,7 +186,7 @@ PrefabInstance:
     - target: {fileID: -4216859302048453862, guid: fd9532a5fca0c9847b3e440615c05d8e,
         type: 3}
       propertyPath: m_RootOrder
-      value: 6
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: fd9532a5fca0c9847b3e440615c05d8e,
         type: 3}
@@ -818,7 +823,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 846959653}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.6, y: 10, z: 0.98}
+  m_LocalPosition: {x: 0.5, y: 10, z: 0.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 541362175}
@@ -1090,9 +1095,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fbe8ed6b3f94a744dbdaf9a3678c4680, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  meshCollider: {fileID: 1014048839}
   characterRef: {fileID: 846959655}
-  terrain: []
+  chunkPrefab: {fileID: 7326002865322361955, guid: e1eee1ff8a9fcda4f8e91d43a8a0371a,
+    type: 3}
+  terrainGO: []
+  lastChunkPlayerLocation: {x: 0, y: 0}
+  lastChunkPlayerLocationNotInitialized: 1
 --- !u!64 &1014048839
 MeshCollider:
   m_ObjectHideFlags: 0
