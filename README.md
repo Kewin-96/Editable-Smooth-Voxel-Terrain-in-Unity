@@ -12,38 +12,33 @@ Smooth voxel terrain is terrain which can be modified in any direction (there ar
   </tr>
   
   <tr>
-    <td>Editing mesh while project is running.</td>
-    <td>:heavy_check_mark:</td>
-  </tr>
-  
-  <tr>
     <td>Marching cubes + interpolation algorythm</td>
     <td>:heavy_check_mark:</td>
   </tr>
   
   <tr>
-    <td>1 chunk</td>
-    <td>:construction:</td>
+    <td>Editing terrain while project is running.</td>
+    <td>:heavy_check_mark:</td>
   </tr>
   
   <tr>
     <td>Editing terrain with small scalable ball</td>
-    <td></td>
-  </tr>
-  
-  <tr>
-    <td>A few chunks</td>
-    <td></td>
+    <td>:construction:</td>
   </tr>
     
    <tr>
-    <td>Any number of chunks</td>
-    <td></td>
+    <td>Generating any number of chunks</td>
+    <td>:heavy_check_mark:</td>
   </tr>
     
    <tr>
     <td>Terrain generation with seed</td>
-    <td></td>
+    <td>:construction:</td>
+  </tr>
+    
+   <tr>
+    <td>Removing chunks from memory, when it is outside "draw distance" and loading existing chunks when they comes into "draw distance"</td>
+    <td>:construction:</td>
   </tr>
 </table>
 
