@@ -382,11 +382,18 @@ public class ChunkSVT : MonoBehaviour
     {
         sVTterrain = terrain;
         transform.position = terrainWorldLocation + new Vector3(xIndex * chunkWidth, 0, yIndex * chunkWidth);
-        Debug.Log(transform.position);
         this.xIndex = xIndex;
         this.yIndex = yIndex;
-        ChunkInit();
         neighborhood = GetNeighborhood();
+        ChunkInit();
+
+        // Neighbors update (OPTIMIZE - obliczać tylko graniczące ściany/krawędzie a nie cały chunk)
+        if (neighborhood[0] != null)
+            neighborhood[0].ConvertVoxelsToSVT();
+        if (neighborhood[1] != null)
+            neighborhood[1].ConvertVoxelsToSVT();
+        if (neighborhood[3] != null)
+            neighborhood[3].ConvertVoxelsToSVT();
     }
 
     /// <summary>
@@ -426,9 +433,6 @@ public class ChunkSVT : MonoBehaviour
             }
         }
 
-        // initialization of neighborhood
-        neighborhood = new ChunkSVT[8];
-
         // inicjalization mesh object
         mesh = new Mesh();
         GetComponent<MeshFilter>().mesh = mesh;         // setting mesh for game object
@@ -467,27 +471,51 @@ public class ChunkSVT : MonoBehaviour
             if (sVTterrain.terrainGO[i].GetComponent<ChunkSVT>().xIndex == xIndex - 1)
             {
                 if (sVTterrain.terrainGO[i].GetComponent<ChunkSVT>().yIndex == yIndex - 1)
-                    neighborhood[7] = sVTterrain.terrainGO[i].GetComponent<ChunkSVT>();
+                {
+                    neighborhood[0] = sVTterrain.terrainGO[i].GetComponent<ChunkSVT>();
+                    sVTterrain.terrainGO[i].GetComponent<ChunkSVT>().neighborhood[7] = this;
+                }
                 else if (sVTterrain.terrainGO[i].GetComponent<ChunkSVT>().yIndex == yIndex)
-                    neighborhood[4] = sVTterrain.terrainGO[i].GetComponent<ChunkSVT>();
+                {
+                    neighborhood[3] = sVTterrain.terrainGO[i].GetComponent<ChunkSVT>();
+                    sVTterrain.terrainGO[i].GetComponent<ChunkSVT>().neighborhood[4] = this;
+                }
                 else if (sVTterrain.terrainGO[i].GetComponent<ChunkSVT>().yIndex == yIndex + 1)
-                    neighborhood[2] = sVTterrain.terrainGO[i].GetComponent<ChunkSVT>();
+                {
+                    neighborhood[5] = sVTterrain.terrainGO[i].GetComponent<ChunkSVT>();
+                    sVTterrain.terrainGO[i].GetComponent<ChunkSVT>().neighborhood[2] = this;
+                }
             }
             if (sVTterrain.terrainGO[i].GetComponent<ChunkSVT>().xIndex == xIndex)
             {
                 if (sVTterrain.terrainGO[i].GetComponent<ChunkSVT>().yIndex == yIndex - 1)
-                    neighborhood[6] = sVTterrain.terrainGO[i].GetComponent<ChunkSVT>();
-                else if (sVTterrain.terrainGO[i].GetComponent<ChunkSVT>().yIndex == yIndex + 1)
+                {
                     neighborhood[1] = sVTterrain.terrainGO[i].GetComponent<ChunkSVT>();
+                    sVTterrain.terrainGO[i].GetComponent<ChunkSVT>().neighborhood[6] = this;
+                }
+                else if (sVTterrain.terrainGO[i].GetComponent<ChunkSVT>().yIndex == yIndex + 1)
+                {
+                    neighborhood[6] = sVTterrain.terrainGO[i].GetComponent<ChunkSVT>();
+                    sVTterrain.terrainGO[i].GetComponent<ChunkSVT>().neighborhood[1] = this;
+                }
             }
             if (sVTterrain.terrainGO[i].GetComponent<ChunkSVT>().xIndex == xIndex + 1)
             {
                 if (sVTterrain.terrainGO[i].GetComponent<ChunkSVT>().yIndex == yIndex - 1)
-                    neighborhood[5] = sVTterrain.terrainGO[i].GetComponent<ChunkSVT>();
+                {
+                    neighborhood[2] = sVTterrain.terrainGO[i].GetComponent<ChunkSVT>();
+                    sVTterrain.terrainGO[i].GetComponent<ChunkSVT>().neighborhood[5] = this;
+                }
                 else if (sVTterrain.terrainGO[i].GetComponent<ChunkSVT>().yIndex == yIndex)
-                    neighborhood[3] = sVTterrain.terrainGO[i].GetComponent<ChunkSVT>();
+                {
+                    neighborhood[4] = sVTterrain.terrainGO[i].GetComponent<ChunkSVT>();
+                    sVTterrain.terrainGO[i].GetComponent<ChunkSVT>().neighborhood[3] = this;
+                }
                 else if (sVTterrain.terrainGO[i].GetComponent<ChunkSVT>().yIndex == yIndex + 1)
-                    neighborhood[0] = sVTterrain.terrainGO[i].GetComponent<ChunkSVT>();
+                {
+                    neighborhood[7] = sVTterrain.terrainGO[i].GetComponent<ChunkSVT>();
+                    sVTterrain.terrainGO[i].GetComponent<ChunkSVT>().neighborhood[0] = this;
+                }
             }
         }
         return neighborhood;
@@ -622,96 +650,96 @@ public class ChunkSVT : MonoBehaviour
     /// <param name="yL">y length of update</param>
     /// <param name="zL">z length of update</param>
     /// <param name="chunk">chunk</param>
-    /// <param name="neighborChunks">neighbor chunk</param>
-    public void ConvertVoxelsToGridcells(int x1, int y1, int z1, int xL, int yL, int zL, ChunkSVT[] neighborChunks)
+    /// <param name="neighborhood">neighbor chunk</param>
+    public void ConvertVoxelsToGridcells(int x1, int y1, int z1, int xL, int yL, int zL)
     {
-        for (int i = x1; i < x1 + xL; i++)
+        for (int x = x1; x < x1 + xL; x++)
         {
-            for (int j = y1; j < y1 + yL; j++)
+            for (int y = y1; y < y1 + yL; y++)
             {
-                for (int k = z1; k < z1 + zL; k++)
+                for (int z = z1; z < z1 + zL; z++)
                 {
                     // 0 - gricell vertice number
-                    grid[i][j][k].val[0] = voxels[i][j][k];
+                    grid[x][y][z].val[0] = voxels[x][y][z];
 
                     // 1
-                    if (i > 0)
-                        grid[i - 1][j][k].val[1] = voxels[i][j][k];
+                    if (x > 0)
+                        grid[x - 1][y][z].val[1] = voxels[x][y][z];
                     else
                     {
-                        if (neighborChunks[3] != null)
-                            neighborChunks[3].grid[i - 1][j][k].val[1] = voxels[i][j][k];
+                        if (neighborhood[3] != null)
+                            neighborhood[3].grid[15][y][z].val[1] = voxels[x][y][z];
                     }
 
                     // 2
-                    if (i > 0 && k > 0)
-                        grid[i - 1][j][k - 1].val[2] = voxels[i][j][k];
-                    else if (i > 0)
+                    if (x > 0 && z > 0)
+                        grid[x - 1][y][z - 1].val[2] = voxels[x][y][z];
+                    else if (x > 0)
                     {
-                        if (neighborChunks[3] != null)
-                            neighborChunks[3].grid[i - 1][j][k - 1].val[2] = voxels[i][j][k];
+                        if (neighborhood[1] != null)
+                            neighborhood[1].grid[x - 1][y][15].val[2] = voxels[x][y][z];
                     }
-                    else if (k > 0)
+                    else if (z > 0)
                     {
-                        if (neighborChunks[1] != null)
-                            neighborChunks[1].grid[i - 1][j][k - 1].val[2] = voxels[i][j][k];
+                        if (neighborhood[3] != null)
+                            neighborhood[3].grid[15][y][z - 1].val[2] = voxels[x][y][z];
                     }
                     else
                     {
-                        if (neighborChunks[0] != null)
-                            neighborChunks[0].grid[i - 1][j][k - 1].val[2] = voxels[i][j][k];
+                        if (neighborhood[0] != null)
+                            neighborhood[0].grid[15][y][15].val[2] = voxels[x][y][z];
                     }
 
                     // 3
-                    if (k > 0)
-                        grid[i][j][k - 1].val[3] = voxels[i][j][k];
+                    if (z > 0)
+                        grid[x][y][z - 1].val[3] = voxels[x][y][z];
                     else
                     {
-                        if (neighborChunks[1] != null)
-                            neighborChunks[1].grid[i][j][k - 1].val[3] = voxels[i][j][k];
+                        if (neighborhood[1] != null)
+                            neighborhood[1].grid[x][y][15].val[3] = voxels[x][y][z];
                     }
 
                     // 4, 5, 6, 7
-                    if (j > 0 && j < chunkHeightGC)
+                    if (y > 0 && y < chunkHeightGC)
                     {
                         // 4
-                        grid[i][j - 1][k].val[4] = voxels[i][j][k];
+                        grid[x][y - 1][z].val[4] = voxels[x][y][z];
 
                         // 5
-                        if (i > 0)
-                            grid[i - 1][j - 1][k].val[5] = voxels[i][j][k];
+                        if (x > 0)
+                            grid[x - 1][y - 1][z].val[5] = voxels[x][y][z];
                         else
                         {
-                            if (neighborChunks[3] != null)
-                                neighborChunks[3].grid[i - 1][j - 1][k].val[5] = voxels[i][j][k];
+                            if (neighborhood[3] != null)
+                                neighborhood[3].grid[15][y - 1][z].val[5] = voxels[x][y][z];
                         }
 
                         // 6
-                        if (i > 0 && k > 0)
-                            grid[i - 1][j - 1][k - 1].val[6] = voxels[i][j][k];
-                        else if (i > 0)
+                        if (x > 0 && z > 0)
+                            grid[x - 1][y - 1][z - 1].val[6] = voxels[x][y][z];
+                        else if (x > 0)
                         {
-                            if (neighborChunks[3] != null)
-                                neighborChunks[3].grid[i - 1][j - 1][k - 1].val[6] = voxels[i][j][k];
+                            if (neighborhood[1] != null)
+                                neighborhood[1].grid[x - 1][y - 1][15].val[6] = voxels[x][y][z];
                         }
-                        else if (k > 0)
+                        else if (z > 0)
                         {
-                            if (neighborChunks[1] != null)
-                                neighborChunks[1].grid[i - 1][j - 1][k - 1].val[6] = voxels[i][j][k];
+                            if (neighborhood[3] != null)
+                                neighborhood[3].grid[15][y - 1][z - 1].val[6] = voxels[x][y][z];
                         }
                         else
                         {
-                            if (neighborChunks[0] != null)
-                                neighborChunks[0].grid[i - 1][j - 1][k - 1].val[6] = voxels[i][j][k];
+                            if (neighborhood[0] != null)
+                                neighborhood[0].grid[15][y - 1][15].val[6] = voxels[x][y][z];
                         }
 
                         // 7
-                        if (k > 0)
-                            grid[i][j - 1][k - 1].val[7] = voxels[i][j][k];
+                        if (z > 0)
+                            grid[x][y - 1][z - 1].val[7] = voxels[x][y][z];
                         else
                         {
-                            if (neighborChunks[1] != null)
-                                neighborChunks[1].grid[i][j - 1][k - 1].val[7] = voxels[i][j][k];
+                            if (neighborhood[1] != null)
+                                neighborhood[1].grid[x][y - 1][15].val[7] = voxels[x][y][z];
                         }
                     }
                     // else: gridcell below or above chunk - do nothing ...
@@ -805,7 +833,7 @@ public class ChunkSVT : MonoBehaviour
     public void ConvertVoxelsToSVT()
     {
         // converting voxel array to vertices
-        ConvertVoxelsToGridcells(0, 0, 0, chunkWidthGC, chunkHeightGC, chunkWidthGC, neighborhood);
+        ConvertVoxelsToGridcells(0, 0, 0, chunkWidthGC, chunkHeightGC, chunkWidthGC);
 
         // polygonising
         ConvertGridToTriangles();

@@ -40,6 +40,13 @@ public class PlayerMovement : MonoBehaviour
                 {
                     // IMPROVE  - zawsze jest brany pierwszy chunk !!! ... no i na testy jeszcze dac wyswietlanie sąsiadów postrzelonego chunka
                     EditSVT.DecreaseVoxel(-20, hitChunk, hit.point);
+                    for(int i = 0; i < 8; i++)
+                    {
+                        if(hitChunk.neighborhood[i] == null)
+                            Debug.Log("i[" + i + "] = NULL");
+                        else
+                            Debug.Log("i[" + i + "] != NULL");
+                    }
                 }
             }
         }
