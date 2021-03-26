@@ -45,6 +45,8 @@ Smooth voxel terrain is terrain which can be modified in any direction (there ar
 # Presentation
 https://youtu.be/SoKegqHPPRY
 
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/SoKegqHPPRY/0.jpg)](https://www.youtube.com/watch?v=SoKegqHPPRY)
+
 # Examples of similar projects with voxel terrains
 #### Example of editable voxel terrain (not smoothed): <br />
 https://youtu.be/NG1gJvdCE4Q <br />
