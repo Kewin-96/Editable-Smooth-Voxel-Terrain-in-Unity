@@ -1,7 +1,7 @@
 # Editable Smooth Voxel Terrain in Unity
 Smooth voxel terrain is terrain which can be modified in any direction (there are terrain in many games where terrain can be modified only vertically). SVT is just like terrain in one popular cubic-terrain game - Minecraft, but smoothed. In my project, terrain will be also editable while the game/program is running (some graphics tools has similar SVT algorythm, but you can export only static object into Unity project. <br />
 
-**Unity 2019.1.9f1**  <br />
+**Unity3D 2019.1.9f1**  <br />
 **Visual Studio Community 2019** <br />
 
 # To do list
@@ -42,12 +42,22 @@ Smooth voxel terrain is terrain which can be modified in any direction (there ar
   </tr>
 </table>
 
-# Presentation
-There is nothing interesting to show yet.
+# Presentation of my work progress
+https://youtu.be/SoKegqHPPRY
+
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/SoKegqHPPRY/0.jpg)](https://www.youtube.com/watch?v=SoKegqHPPRY)
 
 # Examples of similar projects with voxel terrains
 #### Example of editable voxel terrain (not smoothed): <br />
 https://youtu.be/NG1gJvdCE4Q <br />
+
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/NG1gJvdCE4Q/0.jpg)](https://www.youtube.com/watch?v=NG1gJvdCE4Q)
+
 #### Examples of smooth voxel terrain: <br />
 https://youtu.be/M3iI2l0ltbE <br />
+
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/M3iI2l0ltbE/0.jpg)](https://www.youtube.com/watch?v=M3iI2l0ltbE)
+
 https://youtu.be/ZS3Z43MQaLw <br />
+
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/ZS3Z43MQaLw/0.jpg)](https://www.youtube.com/watch?v=ZS3Z43MQaLw)
