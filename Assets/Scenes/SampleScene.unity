@@ -146,7 +146,7 @@ PrefabInstance:
     - target: {fileID: -927199367670048503, guid: fd9532a5fca0c9847b3e440615c05d8e,
         type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: fd9532a5fca0c9847b3e440615c05d8e,
         type: 3}
@@ -274,7 +274,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!65 &392082744
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -706,7 +706,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!65 &776931777
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1098,9 +1098,7 @@ MonoBehaviour:
   characterRef: {fileID: 846959655}
   chunkPrefab: {fileID: 7326002865322361955, guid: e1eee1ff8a9fcda4f8e91d43a8a0371a,
     type: 3}
-  terrainGO: []
-  lastChunkPlayerLocation: {x: 0, y: 0}
-  lastChunkPlayerLocationNotInitialized: 1
+  terrainChunks: []
 --- !u!64 &1014048839
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -1192,7 +1190,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!65 &1277443256
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1313,7 +1311,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!65 &1470651776
 BoxCollider:
   m_ObjectHideFlags: 0

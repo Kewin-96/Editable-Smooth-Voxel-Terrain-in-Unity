@@ -23,7 +23,7 @@ public class PlayerMovement : MonoBehaviour
     public Camera fpsCam;
     public float range = 100000f;
     public int weaponIndex = 0;
-    public readonly string[] weaponNames2 = { "One voxel -202", "WEAPON NOT CREATED", "WEAPON NOT CREATED", "WEAPON NOT CREATED", "WEAPON NOT CREATED" };
+    public readonly string[] weaponNames2 = { "One voxel -20", "WEAPON NOT CREATED", "WEAPON NOT CREATED", "WEAPON NOT CREATED", "WEAPON NOT CREATED" };
 
     /// <summary>
     /// Shooting
@@ -39,24 +39,34 @@ public class PlayerMovement : MonoBehaviour
                 if (hitChunk != null)
                 {
                     // IMPROVE  - zawsze jest brany pierwszy chunk !!! ... no i na testy jeszcze dac wyswietlanie sąsiadów postrzelonego chunka
-                    EditSVT.DecreaseVoxel(-20, hitChunk, hit.point);
-                    for(int i = 0; i < 8; i++)
+                    EditSVT.ChangeVoxelValue(-20, hitChunk, hit.point);
+                    /*for(int i = 0; i < 8; i++)
                     {
                         if(hitChunk.neighborhood[i] == null)
                             Debug.Log("i[" + i + "] = NULL");
                         else
                             Debug.Log("i[" + i + "] != NULL");
-                    }
+                    }*/
                 }
             }
         }
         else if (weaponIndex == 1)
         {
-
+            RaycastHit hit;
+            if (Physics.Raycast(fpsCam.transform.position, fpsCam.transform.forward, out hit, range))
+            {
+                ChunkSVT hitChunk = hit.transform.GetComponent<ChunkSVT>();
+                if (hitChunk != null)
+                {
+                    EditSVT.ChangeVoxelValue(20, hitChunk, hit.point);
+                }
+            }
         }
     }
 
-    // Update is called once per frame
+    /// <summary>
+    /// Update is called once per frame
+    /// </summary>
     void Update()
     {
         // Update information if character is on the ground

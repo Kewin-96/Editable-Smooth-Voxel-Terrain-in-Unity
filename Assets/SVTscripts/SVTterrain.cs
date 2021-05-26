@@ -3,35 +3,38 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// SVTterrain is terrain made of SVT-chunks. Class contains 
+/// </summary>
 public class SVTterrain : MonoBehaviour
 {
-    public Transform characterRef;
-    public GameObject chunkPrefab;
-    public List<GameObject> terrainGO;
-    public Vector2Int lastChunkPlayerLocation;
-    public bool lastChunkPlayerLocationNotInitialized = true;
+    public Transform characterRef;                                  // reference to character
+    public GameObject chunkPrefab;                                  // reference to prefab with ChunkSVT script
+    public List<GameObject> terrainChunks = new List<GameObject>(); // list of all created chunks
+    private Vector2Int lastChunkPlayerLocation;                     // last player location described in chunks
+    private bool lastChunkPlayerLocationNotInitialized = true;      // is "player location described in chunk" not initialized
 
     /// <summary>
-    /// Always executes when player changed chunk position
+    /// Always executes when player changes chunk position
     /// </summary>
     public void CheckAndCreateChunks(Vector2Int playerOnChunkLocation)
     {
         // Make first chunks within draw distance
         int xIndex = playerOnChunkLocation.x, yIndex = playerOnChunkLocation.y;
-        for (int x = xIndex - MainScript.drawDistance; x < xIndex + MainScript.drawDistance + 1; x++)
-            for (int y = yIndex - MainScript.drawDistance; y < yIndex + MainScript.drawDistance + 1; y++)
+        for (int x = xIndex - MainScript.DrawDistance; x < xIndex + MainScript.DrawDistance + 1; x++)
+            for (int y = yIndex - MainScript.DrawDistance; y < yIndex + MainScript.DrawDistance + 1; y++)
             {
-                // Check current indexed chunk if it exist already ...
+                // Check if chunk already exist ...
                 bool chunkExist = false;
-                for (int i = 0; i < terrainGO.Count; i++)
-                    if ((terrainGO[i].GetComponent<ChunkSVT>()).xIndex == x && (terrainGO[i].GetComponent<ChunkSVT>()).yIndex == y)
+                for (int i = 0; i < terrainChunks.Count; i++)
+                    if ((terrainChunks[i].GetComponent<ChunkSVT>()).xIndex == x && (terrainChunks[i].GetComponent<ChunkSVT>()).yIndex == y)
                         chunkExist = true;
 
                 // ... if not, create it
                 if (chunkExist == false)
                 {
-                    terrainGO.Add((Instantiate(chunkPrefab) as GameObject));
-                    (terrainGO[terrainGO.Count-1].GetComponent<ChunkSVT>()).ChunkPreInit(this, transform.position, x, y);
+                    terrainChunks.Add((Instantiate(chunkPrefab) as GameObject));
+                    (terrainChunks[terrainChunks.Count-1].GetComponent<ChunkSVT>()).ChunkInit(this, transform.position, x, y);
                 }
             }
     }
@@ -41,7 +44,7 @@ public class SVTterrain : MonoBehaviour
     /// </summary>    
     void Start()
     {
-        terrainGO = new List<GameObject>();
+        
     }
 
     /// <summary>
@@ -50,9 +53,9 @@ public class SVTterrain : MonoBehaviour
     void Update()
     {
         // Chunks Update() method execution
-        for(int i = 0; i < terrainGO.Count; i++)  // OPTIMIZE - when game will generate 100000 chunks, that loop will executes 100000 times - it should execute on LOADED chunks !!!
+        for(int i = 0; i < terrainChunks.Count; i++)  // OPTIMIZE - when game will generate 100000 chunks, that loop will executes 100000 times - it should execute on LOADED chunks !!!
         {
-            (terrainGO[i].GetComponent<ChunkSVT>()).Update();
+            (terrainChunks[i].GetComponent<ChunkSVT>()).Update();
         }
 
         // Calculate player chunk position
